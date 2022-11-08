@@ -19,8 +19,6 @@ executable_path = {'executable_path': ChromeDriverManager().install()}
 browser = Browser('chrome', **executable_path, headless=False)
 
 
-# ### Visit the NASA Mars News Site
-
 # In[3]:
 
 
@@ -64,8 +62,6 @@ news_p = slide_elem.find('div', class_='article_teaser_body').get_text()
 news_p
 
 
-# ### JPL Space Images Featured Image
-
 # In[8]:
 
 
@@ -107,8 +103,6 @@ img_url = f'https://spaceimages-mars.com/{img_url_rel}'
 img_url
 
 
-# ### Mars Facts
-
 # In[13]:
 
 
@@ -130,10 +124,6 @@ df
 df.to_html()
 
 
-# # D1: Scrape High-Resolution Mars’ Hemisphere Images and Titles
-
-# ### Hemispheres
-
 # In[16]:
 
 
@@ -147,74 +137,38 @@ browser.visit(url)
 
 
 # 2. Create a list to hold the images and titles.
-hemisphere_info = []
+hemisphere_image_urls = []
 
 # 3. Write code to retrieve the image urls and titles for each hemisphere.
-html = browser.html
-hemisphere_soup = soup(html, 'html.parser')
+for mars in range(4):
+    browser.links.find_by_partial_text('Hemisphere')[mars].click()
+    
+    # Parse the HTML
+    html = browser.html
+    planet_soup = soup(html, 'html.parser')
+    
+    # Scraping
+    title = planet_soup.find('h2', class_='title').text
+    img_url = planet_soup.find('li').a.get('href')
+    
+    #store findings into a dictionary and append to list
+    hemispheres = {}
+    hemispheres['img_url'] = f'https://marshemispheres.com/{img_url}'
+    hemispheres['title'] = title
+    hemisphere_image_urls.append(hemispheres)
+    
+    # Browse back to repeat
+    browser.back()
 
 
 # In[18]:
 
 
-# For items in div class_='collapsible results'
-# Find the div class_='item'
-items = hemisphere_soup.find('div', class_='collapsible results').find_all('div', class_='item')
-
-# Get img class_='thumb'
-images_url = [i.find('a', class_='itemLink product-item') for i in items]
-images_url = [i.get('href') for i in images_url]
+# 4. Print the list that holds the dictionary of each image url and title.
+hemisphere_image_urls
 
 
 # In[19]:
-
-
-images = []
-for i in images_url:
-    img_url = url + i
-
-    browser.visit(img_url)
-    html = browser.html
-    image_soup = soup(html, 'html.parser')
-
-    image_link = image_soup.find('div', class_='downloads')
-    image_link = image_link.find('a')
-    image_link = image_link.get('href')
-    images.append(url + image_link)
-
-
-# In[20]:
-
-
-browser.visit(url)
-
-html = browser.html
-hemisphere_soup = soup(html, 'html.parser')
-
-
-# In[21]:
-
-
-# Get a class_='itemLink product-item'
-# Get h3
-titles = [i.find('h3') for i in items]
-titles = [i.text for i in titles]
-
-
-# In[22]:
-
-
-[hemisphere_info.append({'image' : images[i], 'title' : titles[i]}) for i in range(len(images))]
-
-
-# In[23]:
-
-
-# 4. Print the list that holds the dictionary of each image url and title.
-hemisphere_info
-
-
-# In[24]:
 
 
 # 5. Quit the browser
